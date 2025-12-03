@@ -4,8 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>究加星團 - 氣候電子觀測</title>
-    <!-- 由於無法使用外部圖片，將刪除 icon 連結 -->
+    <title>究加星團 - 氣候觀測</title>
+    <link rel="icon" type="image/png" href="./icon-v3.png">
+    <link rel="apple-touch-icon" href="./icon-v3.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./icon-v3.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Noto+Sans+TC:wght@400;700;900&display=swap"
@@ -64,7 +66,7 @@
         }
 
         #locationSelect {
-            appearance: none;
+            appearance: none; /* 移除瀏覽器預設樣式 */
             background: var(--fss-accent-blue);
             color: var(--fss-dark-bg);
             padding: 5px 30px 5px 12px;
@@ -87,8 +89,9 @@
             transform: translateY(-50%);
             color: var(--fss-dark-bg);
             font-size: 0.8rem;
-            pointer-events: none;
+            pointer-events: none; /* 確保點擊穿透到 select */
         }
+        /* ------------------------- */
 
         .update-pill {
             font-size: 0.8rem;
@@ -288,7 +291,6 @@
             justify-content: center;
             align-items: center;
             z-index: 999;
-            transition: opacity 0.3s ease;
         }
     </style>
 </head>
@@ -302,7 +304,7 @@
     <div class="status-bar">
         <div class="location-select-container">
             <select id="locationSelect">
-            </select>
+                </select>
         </div>
         
         <div id="updateTime" class="update-pill">系統啟動中...</div>
@@ -321,59 +323,25 @@
 
     <script>
         // API 基礎網址
-        // 請確保您的後端服務 (server.js) 運行在這個網址並公開
-        const BASE_API_URL = "/api/weather/";
+        const BASE_API_URL = "https://weather-mia.zeabur.app/api/weather/";
         
         // 可選地區列表：[顯示名稱]: [API 查詢代碼]
-        // 已擴充至所有 22 個縣市，與後端 LOCATION_MAP 保持一致
         const locations = {
-            // 六都及主要城市
             '阿特洛波斯-高雄': 'kaohsiung',
             '阿特洛波斯-台北': 'taipei',
             '阿特洛波斯-台中': 'taichung',
-            '阿特洛波斯-苗栗': 'miaoli' ,
-            
-            
-            
-
-            
-            //'中華民國-高雄市': 'kaohsiung',
-            //'中華民國-臺北市': 'taipei',
-            //'中華民國-臺中市': 'taichung',
-            //'中華民國-新北市': 'newtaipei',
-            //'中華民國-桃園市': 'taoyuan',
-            //'中華民國-臺南市': 'tainan',
-
-            // 其他縣市
-            //'Chronos-基隆市': 'keelung',
-            //'Chronos-新竹縣': 'hsinchucounty',
-            //'Chronos-新竹市': 'hsinchucity',
-            //'Chronos-苗栗縣': 'miaoli',
-            //'Chronos-彰化縣': 'changhua',
-            //'Chronos-南投縣': 'nantou',
-            //'Chronos-雲林縣': 'yunlin',
-            //'Chronos-嘉義縣': 'chiayicounty',
-            //'Chronos-嘉義市': 'chiayicity',
-            //'Chronos-屏東縣': 'pingtung',
-
-            // 東部及離島
-            //'Chronos-宜蘭縣': 'yilan',
-            //'Chronos-花蓮縣': 'hualien',
-            //'Chronos-臺東縣': 'taitung',
-            //'Chronos-澎湖縣': 'penghu',
-            //'Chronos-金門縣': 'kinmen',
-            //'Chronos-連江縣': 'lienchiang',
+            '阿特洛波斯-苗栗': 'miaoli'
+            // 如果 API 支援，可繼續擴充
         };
 
         // 追蹤當前選定的地區代碼
-        let currentApiCode = 'miaol'; 
+        let currentApiCode = 'kaohsiung'; 
 
         // 動態生成 API 網址
         function getApiUrl() {
             return BASE_API_URL + currentApiCode;
         }
 
-        // 輔助函式：根據天氣描述取得 Emoji 圖標
         function getWeatherIcon(weather) {
             if (!weather) return "🛰️";
             if (weather.includes("晴")) return "☀️";
@@ -381,43 +349,30 @@
             if (weather.includes("陰")) return "☁️";
             if (weather.includes("雨")) return "💧";
             if (weather.includes("雷")) return "⚡";
-            // 處理雨/晴
-            if (weather.includes("多雲時晴") || weather.includes("陰時多雲")) return "🌤️"; 
-            if (weather.includes("陣雨")) return "🌧️";
             return "🌪️";
         }
 
-        // 輔助函式：生成科幻風格的建議
         function getAdvice(rainProb, maxTemp) {
             let rainIcon = "🛡️";
-            let rainText = "防護等級：綠色 (無需啟動)";
-            const rainInt = parseInt(rainProb);
-            if (rainInt > 50) {
+            let rainText = "防護等級：綠色";
+            if (parseInt(rainProb) > 30) {
                 rainIcon = "⚠️";
-                rainText = "降水機率極高，建議啟動護盾！";
-            } else if (rainInt > 30) {
-                rainIcon = "☔";
-                rainText = "降水機率中等，建議攜帶輕型裝備。";
+                rainText = "降水機率高，建議啟動防護。";
             }
 
             let clothIcon = "🔥";
             let clothText = "環境溫度：恆溫級";
-            const tempInt = parseInt(maxTemp);
-            if (tempInt >= 32) {
+            if (parseInt(maxTemp) >= 28) {
                 clothIcon = "♨️";
-                clothText = "環境高溫紅色警報，注意散熱！";
-            } else if (tempInt >= 28) {
-                clothIcon = "🔆";
-                clothText = "溫度偏高，注意熱應力管理。";
-            } else if (tempInt <= 20) {
+                clothText = "環境高溫，注意散熱！";
+            } else if (parseInt(maxTemp) <= 20) {
                 clothIcon = "❄️";
-                clothText = "溫度偏低，建議啟動隔熱裝備。";
+                clothText = "溫度偏低，建議隔熱裝備。";
             }
 
             return { rainIcon, rainText, clothIcon, clothText };
         }
 
-        // 輔助函式：取得觀測時相
         function getTimePeriod(startTime) {
             const hour = new Date(startTime).getHours();
             if (hour >= 5 && hour < 11) return "晨間相位";
@@ -427,28 +382,22 @@
             return "深夜待機";
         }
 
-        // 核心：渲染所有天氣資料到 UI 上
         function renderWeather(data) {
             const forecasts = data.forecasts;
-            // 由於 API 可能是 12 小時一期，第一期通常是當前時段
-            const current = forecasts[0]; 
+            const current = forecasts[0];
             const others = forecasts.slice(1);
 
             // 1. 渲染 Hero Card (主畫面)
-            const advice = getAdvice(current.rain.replace('%', ''), current.maxTemp.replace('°C', ''));
+            const advice = getAdvice(current.rain, current.maxTemp);
             const period = getTimePeriod(current.startTime);
-            
-            // 計算平均溫度 (去除 °C)
-            const minT = parseInt(current.minTemp.replace('°C', ''));
-            const maxT = parseInt(current.maxTemp.replace('°C', ''));
-            const avgTemp = Math.round((minT + maxT) / 2);
+            const avgTemp = Math.round((parseInt(current.maxTemp) + parseInt(current.minTemp)) / 2);
 
             document.getElementById('heroCard').innerHTML = `
                         <div class="hero-card">
                             <div class="hero-period">觀測時相：${period}</div>
                             <div class="hero-temp-container">
                                 <div class="hero-icon">${getWeatherIcon(current.weather)}</div>
-                                <div class="hero-temp">${isNaN(avgTemp) ? '--' : avgTemp}°</div>
+                                <div class="hero-temp">${avgTemp}°</div>
                             </div>
                             <div class="hero-desc">天候狀態：${current.weather}</div>
                             
@@ -456,12 +405,12 @@
                                 <div class="advice-item">
                                     <div class="advice-icon">${advice.rainIcon}</div>
                                     <div class="advice-text">${advice.rainText}</div>
-                                    <div style="font-size:0.7rem; color:var(--fss-accent-blue)">降水指數 P.I. ${current.rain}</div>
+                                    <div style="font-size:0.7rem; color:var(--fss-accent-blue)">降水指數 P.I. ${current.rain}%</div>
                                 </div>
                                 <div class="advice-item">
                                     <div class="advice-icon">${advice.clothIcon}</div>
                                     <div class="advice-text">${advice.clothText}</div>
-                                    <div style="font-size:0.7rem; color:var(--fss-accent-blue)">環境極值 T.M. ${current.maxTemp}</div>
+                                    <div style="font-size:0.7rem; color:var(--fss-accent-blue)">環境極值 T.M. ${current.maxTemp}°</div>
                                 </div>
                             </div>
                         </div>
@@ -477,18 +426,17 @@
                 let p = getTimePeriod(f.startTime);
 
                 const fDate = new Date(f.startTime);
-                // 檢查是否是隔天的預報
                 if (fDate.getDate() !== todayDate) {
                     p = "次日" + p;
                 }
 
                 scrollContainer.innerHTML += `
-                                <div class="mini-card">
-                                    <div class="mini-time">${p}</div>
-                                    <div class="mini-icon">${getWeatherIcon(f.weather)}</div>
-                                    <div class="mini-temp">${f.minTemp} ~ ${f.maxTemp}</div>
-                                    <div>P.I. ${f.rain}</div>
-                                </div>
+                            <div class="mini-card">
+                                <div class="mini-time">${p}</div>
+                                <div class="mini-icon">${getWeatherIcon(f.weather)}</div>
+                                <div class="mini-temp">${f.minTemp}° ~ ${f.maxTemp}°</div>
+                                <div>P.I. ${f.rain}%</div>
+                            </div>
                         `;
             });
 
@@ -499,53 +447,35 @@
             const dayIndex = now.getDay();
             const days = ["D0 (日)", "D1 (一)", "D2 (二)", "D3 (三)", "D4 (四)", "D5 (五)", "D6 (六)"];
 
-            document.getElementById('updateTime').textContent = `[S-Time] ${month}/${date} ${days[dayIndex]} ${data.city}`;
+            document.getElementById('updateTime').textContent = `[S-Time] ${month}/${date} ${days[dayIndex]}`;
         }
 
-        // 顯示 Loading 畫面
         function showLoading() {
-            document.getElementById('loading').style.opacity = 1;
             document.getElementById('loading').style.display = 'flex';
             document.getElementById('mainContent').style.display = 'none';
-            document.getElementById('updateTime').textContent = `[S-STATUS] 觀測數據傳輸中...`;
         }
 
-        // 抓取天氣資料
         async function fetchWeather() {
             showLoading(); // 每次抓取前顯示 Loading 畫面
 
             try {
-                // 為了視覺效果，增加延遲
-                const delayPromise = new Promise(resolve => setTimeout(resolve, 800)); 
-                
-                const response = await fetch(getApiUrl());
-                const json = await response.json();
+                const delayPromise = new Promise(resolve => setTimeout(resolve, 1500));
+                // 使用動態 API 網址
+                const fetchPromise = fetch(getApiUrl()).then(res => res.json());
 
-                await delayPromise; // 等待延遲結束
+                const [_, json] = await Promise.all([delayPromise, fetchPromise]);
 
                 if (json.success) {
                     renderWeather(json.data);
-                    document.getElementById('loading').style.opacity = 0;
-                    // 使用 setTimeout 確保動畫結束後隱藏，防止閃爍
-                    setTimeout(() => document.getElementById('loading').style.display = 'none', 300);
+                    document.getElementById('loading').style.display = 'none';
                     document.getElementById('mainContent').style.display = 'block';
                 } else {
-                    // API 返回失敗訊息
-                    throw new Error(json.message || "觀測站回傳非預期數據");
+                    throw new Error("API Error");
                 }
             } catch (e) {
-                console.error("觀測數據傳輸錯誤:", e);
-                // 替換 alert()，將錯誤訊息顯示在狀態列上
-                document.getElementById('updateTime').textContent = `[S-ERROR] 數據傳輸失敗，請檢查後端服務。`;
-                document.getElementById('loading').style.opacity = 0;
-                setTimeout(() => document.getElementById('loading').style.display = 'none', 300);
-                document.getElementById('mainContent').style.display = 'block';
-                document.getElementById('heroCard').innerHTML = `<div class="hero-card" style="border: 3px solid var(--fss-accent-red); box-shadow: 0 0 15px rgba(255, 46, 99, 0.5); padding: 50px;">
-                    <div style="font-size: 2rem; color: var(--fss-accent-red);">🔴 系統嚴重錯誤 🔴</div>
-                    <div style="font-size: 1rem; color: var(--fss-text-light); margin-top: 15px;">錯誤訊息：${e.message}</div>
-                    <div style="font-size: 0.8rem; color: var(--fss-accent-blue); margin-top: 10px;">請確保後端 API (server.js) 已正確啟動並運行在 /api/weather/:location 路由上。</div>
-                </div>`;
-                document.getElementById('futureForecasts').innerHTML = '';
+                console.error(e);
+                alert("觀測數據傳輸錯誤，重啟騎士團通訊！請檢查地區代碼是否正確。");
+                document.getElementById('loading').style.display = 'none';
             }
         }
 
@@ -559,7 +489,7 @@
         function initializeApp() {
             const selectElement = document.getElementById('locationSelect');
 
-            // 填充下拉選單選項 (使用完整的 22 縣市列表)
+            // 填充下拉選單選項
             for (const [name, code] of Object.entries(locations)) {
                 const option = document.createElement('option');
                 option.value = code;
@@ -567,7 +497,7 @@
                 selectElement.appendChild(option);
             }
 
-            // 預設選中 kaohsiung
+            // 預設選中 kaohsiung (與 currentApiCode 保持一致)
             selectElement.value = currentApiCode; 
             
             // 監聽變動事件
@@ -578,3 +508,7 @@
         }
 
         document.addEventListener("DOMContentLoaded", initializeApp);
+    </script>
+</body>
+
+</html>
