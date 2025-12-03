@@ -327,15 +327,39 @@
         
         // 可選地區列表：[顯示名稱]: [API 查詢代碼]
         const locations = {
-            '阿特洛波斯-高雄': 'kaohsiung',
-            '阿特洛波斯-台北': 'taipei',
-            '阿特洛波斯-台中': 'taichung',
-            '阿特洛波斯-苗栗': 'miaoli'
+            //六都:
+            '台北市': 'taipei',
+            '新北市': 'newtaipei',
+            '桃園市': 'taoyuan',
+            '台中市': 'taichung',
+            '臺南市': 'tainan',
+            '高雄市': 'kaohsiung',
+            
+            //一般縣市:
+            '基隆市': 'keelung',
+            '新竹縣': 'hsinchucounty',
+            '新竹市': 'hsinchucity',
+            '苗栗縣': 'miaoli' ,
+            '彰化縣': 'changhua',
+            '南投縣': 'nantou',
+            '雲林縣': 'yunlin',
+            '嘉義縣': 'chiayicounty',
+            '嘉義市': 'chiayicity',
+            '屏東縣': 'pingtung',
+
+            // 東部及離島:
+            '宜蘭縣': 'yilan',
+            '花蓮縣': 'hualien',
+            '臺東縣': 'taitung',
+            '澎湖縣': 'penghu',
+            '金門縣': 'kinmen',
+            '連江縣': 'lienchiang',
+                        
             // 如果 API 支援，可繼續擴充
         };
 
         // 追蹤當前選定的地區代碼
-        let currentApiCode = 'kaohsiung'; 
+        let currentApiCode = 'taichung'; 
 
         // 動態生成 API 網址
         function getApiUrl() {
